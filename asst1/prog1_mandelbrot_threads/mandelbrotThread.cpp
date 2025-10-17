@@ -38,6 +38,7 @@ void workerThreadStart(WorkerArgs *const args)
 
     // printf("Hello world from thread %d\n", args->threadId);
 
+    // 让前面rem个线程各自多拿一行（尽量对于余数进行公平的分配）
     int base = args->height / args->numThreads;
     int rem = args->height % args->numThreads;
     int startRow = args->threadId * base + std::min(args->threadId, rem);
@@ -45,6 +46,16 @@ void workerThreadStart(WorkerArgs *const args)
     int endRow = startRow + totalRows;
 
     mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width, args->height, startRow, totalRows, args->maxIterations, args->output);
+}
+
+void workThreadStartWithStride(WorkerArgs *const args)
+{
+    int numPerThread = args->height / args->numThreads;
+    int startRow = args->threadId * numPerThread;
+    for (size_t i = startRow; i < args->height; i += numPerThread * args->numThreads)
+    {
+        mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width, args->height, i, numPerThread, args->maxIterations, args->output);
+    }
 }
 
 //
